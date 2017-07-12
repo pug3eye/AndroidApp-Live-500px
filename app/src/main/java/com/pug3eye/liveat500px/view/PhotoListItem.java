@@ -9,11 +9,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.inthecheesefactory.thecheeselibrary.view.BaseCustomViewGroup;
 import com.inthecheesefactory.thecheeselibrary.view.state.BundleSavedState;
 import com.pug3eye.liveat500px.R;
 
-import com.bumptech.glide.annotation.GlideModule;
 
 
 /**
@@ -130,9 +130,11 @@ public class PhotoListItem extends BaseCustomViewGroup {
     public void setImageUrl (String url) {                                          // Glide
               Glide.with(getContext())                                              //change RGB565 is RGBA8888
                 .load(url)
-               /* .placeholder(R.drawable.loading)*/
+                .placeholder(R.drawable.loading)
                      // .placeholder(...).error(...)          // v.4 is new knowledge !!!
                      // .transition()                         // original
+                /*.transform()*/
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(ivImg);
     }
 }
