@@ -1,6 +1,7 @@
 package com.pug3eye.liveat500px.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 
 import com.inthecheesefactory.thecheeselibrary.manager.Contextor;
 import com.pug3eye.liveat500px.R;
+import com.pug3eye.liveat500px.activity.MoreInfoActivity;
 import com.pug3eye.liveat500px.adapter.PhotoListAdepter;
 import com.pug3eye.liveat500px.dao.PhotoItemCollectionDao;
 import com.pug3eye.liveat500px.datatype.MutableInteger;
@@ -273,7 +275,9 @@ public class MainFragment extends Fragment {
     final AdapterView.OnItemClickListener listViewItemClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Toast.makeText(getContext(), "Position is "+position, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getContext(),
+                    MoreInfoActivity.class);
+            startActivity(intent);
         }
     };
 
