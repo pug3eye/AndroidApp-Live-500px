@@ -1,6 +1,9 @@
 package com.pug3eye.liveat500px.fragment;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
@@ -10,6 +13,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -18,10 +22,14 @@ import com.inthecheesefactory.thecheeselibrary.manager.Contextor;
 import com.pug3eye.liveat500px.R;
 import com.pug3eye.liveat500px.adapter.PhotoListAdepter;
 import com.pug3eye.liveat500px.dao.PhotoItemCollectionDao;
+import com.pug3eye.liveat500px.datatype.MutableInteger;
 import com.pug3eye.liveat500px.manager.HttpManager;
 import com.pug3eye.liveat500px.manager.PhotoListManager;
 
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import retrofit2.Call;
@@ -45,6 +53,8 @@ public class MainFragment extends Fragment {
     SwipeRefreshLayout swipeRefreshLayout;
 
     PhotoListManager photoListManager;
+    MutableInteger lastPositionInteger;
+
 
     /*************
      * Functions *
@@ -62,28 +72,51 @@ public class MainFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+       init(savedInstanceState);
+
+        if (savedInstanceState != null)
+            onRestoreInstanceState(savedInstanceState);
+             // Restore Instance State
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);     // combine fragment_main into Main fragment
-        initInstances(rootView);
+        initInstances(rootView ,savedInstanceState);
         return rootView;
     }
 
-    private void initInstances(View rootView) {
+    private void  init(Bundle savedInstanceState) {
+        // Initialize Fragment level's variables
         photoListManager = new PhotoListManager();
+        lastPositionInteger = new MutableInteger(-1);
+
+
+    }
+
+    private void initInstances(View rootView, Bundle saveInstanceState) {
 
         btnNewPhotos = (Button) rootView.findViewById(R.id.btnNewPhotos);
         btnNewPhotos.setOnClickListener(buttonClickListener);
 
         // Init 'View' instance(s) with rootView.findViewById here
         listView = (ListView) rootView.findViewById(R.id.listView);
-        listAdepter = new PhotoListAdepter();
+        listAdepter = new PhotoListAdepter(lastPositionInteger);
+        listAdepter.setDao(photoListManager.getDao());
         listView.setAdapter(listAdepter);
+
+        listView.setOnItemClickListener(listViewItemClickListener);
 
         swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(pullToRefreshListener);
         listView.setOnScrollListener(listViewScrollListener);
 
+        if (saveInstanceState == null)
         refreshData();
     }
 
@@ -142,7 +175,21 @@ public class MainFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         // Save Instance State here
+        outState.putBundle("photoListManger",
+                photoListManager.onSaveInstanceState());
+        outState.putBundle("lastPositionInteger",
+                lastPositionInteger.onSaveInstanceState());
+
     }
+
+    private void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Restore instance state here
+        photoListManager.onRestoreInstanceState(
+                savedInstanceState.getBundle("photoListManger"));
+        lastPositionInteger.onRestoreInstanceState(
+                savedInstanceState.getBundle("lastPositionInteger"));
+    }
+
 
     /*
      * Restore Instance State Here
@@ -150,9 +197,6 @@ public class MainFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState != null) {
-            // Restore Instance State here
-        }
     }
 
     private void showButtonNewPhotos() {                                     // Show Button when have New Photo
@@ -223,6 +267,13 @@ public class MainFragment extends Fragment {
                     }
                 }
             }
+        }
+    };
+
+    final AdapterView.OnItemClickListener listViewItemClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Toast.makeText(getContext(), "Position is "+position, Toast.LENGTH_SHORT).show();
         }
     };
 
